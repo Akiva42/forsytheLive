@@ -54,7 +54,7 @@ void draw() {
   textAlign(CENTER, TOP);
   text(voiceInput, width/2, 15);
   text(skeletonArray.size(), width/2, 30);
-  
+
   //send the osc data out
   sendOSCJoints();
 }
@@ -81,7 +81,7 @@ void sendOSCJoints() {
   //add the list of joints to the message
   myMessage.add(tempJoints);
   //send the message over osc
-  oscP5.send(myMessage, myRemoteLocation); 
+  oscP5.send(myMessage, myRemoteLocation);
 }
 //--------------
 //pars the words people said
@@ -92,12 +92,16 @@ void pars(String input) {
   boolean tempLive = true;
   //is the line a "ray" or a line segment
   boolean tempRay = false;
-  ArrayList<KSkeleton> skeletonArray = kinect.getSkeletonColorMap();
   if (whosTalking(skeletonArray) >= 0) {
+    //clear all the lines
     if (input.contains("clear all")) {
       lineoids = new ArrayList<Lineoid>();
     }
-    if ((input.contains("draw") || input.contains("place")) && (input.contains("line") || input.contains("ray") || input.contains("raise"))) {
+    if ((input.contains("draw") 
+      || input.contains("place")) 
+      && (input.contains("line") 
+      || input.contains("ray") 
+      || input.contains("raise"))) {
       if (countJoinsInText(input) == 2 ) {
         String[] list = split(input, "to");
         if (joinInText(list[0]) != -1 && joinInText(list[1]) != -1) {
@@ -226,6 +230,33 @@ int countJoinsInText(String input) {
 void stop() {
   socket.stop();
 }
+//---------
+//figure out what body said the phrase
+int whosTalking(ArrayList<KSkeleton> skeletonArray) {
+  if (skeletonArray.size()>0) {
+    //setup first body
+    KSkeleton skeleton0 = (KSkeleton) skeletonArray.get(0);
+    KJoint[] joints0 = skeleton0.getJoints();
+    //setup second body
+    KJoint[] joints1 = joints0;
+    if (skeletonArray.size() > 1) {
+      KSkeleton skeleton1 = (KSkeleton) skeletonArray.get(1);
+      joints1 = skeleton1.getJoints();
+    }
+    //first body is talking
+    if (joints0[KinectPV2.JointType_HandRight].getState() == KinectPV2.HandState_Closed) {
+      return 0;
+    }
+    //second body is talking
+    if (skeletonArray.size()>1) {
+      if (joints1[KinectPV2.JointType_HandRight].getState() == KinectPV2.HandState_Closed) {
+        return 1;
+      }
+    }
+  }
+  //no one is talking
+  return -1;
+}
 //-------------
 void websocketOnMessage(WebSocketConnection con, String msg) {
   voiceInput = msg;
@@ -239,22 +270,4 @@ void websocketOnOpen(WebSocketConnection con) {
 //---------------
 void websocketOnClosed(WebSocketConnection con) {
   println("A client left");
-}
-//---------
-int whosTalking(ArrayList<KSkeleton> skeletonArray) {
-  if (skeletonArray.size()>0) {
-    KSkeleton skeleton = (KSkeleton) skeletonArray.get(0);
-    KJoint[] joints = skeleton.getJoints();
-    if (joints[KinectPV2.JointType_HandRight].getState() == KinectPV2.HandState_Closed) {
-      if (skeletonArray.size()>1) {
-        skeleton = (KSkeleton) skeletonArray.get(1);
-        joints = skeleton.getJoints();
-        if (joints[KinectPV2.JointType_HandRight].getState() == KinectPV2.HandState_Closed) {
-          return 1;
-        }
-      }
-      return 0;
-    }
-  }
-  return -1;
 }
