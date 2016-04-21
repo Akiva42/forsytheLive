@@ -1,3 +1,14 @@
+//  (draw || place)(line || ray)(my || your)(joint name)(to)(my || your)(joint name)
+/**head
+right/left hand
+right/left shoulder
+right/left elbow
+neck
+hips
+right/left knee
+right/left foot
+**/
+
 import KinectPV2.*;
 import KinectPV2.KJoint;
 import muthesius.net.*;
@@ -34,8 +45,9 @@ void setup() {
 void draw() {
   //draw the color image
   image(kinect.getColorImage(), 0, 0, width, height);
-  //create an array of all the skeletons
+  //create an array of all the skeletons (updated each frame)
   skeletonArray = kinect.getSkeleton3d();
+  
   //update all the lineoids
   for (int i = 0; i < lineoids.size(); i++) {
     if (lineoids.get(i).live) {
@@ -78,13 +90,14 @@ void sendOSCJoints() {
       //tempJointsCount ++;
     }
   }
+  
   //add the list of joints to the message
   myMessage.add(tempJoints);
   //send the message over osc
   oscP5.send(myMessage, myRemoteLocation);
 }
 //--------------
-//pars the words people said
+//pars the words people said and make that data in to a lineoid
 void pars(String input) {
   int tempStartBody = 0;
   int tempEndBody = 0;
@@ -93,6 +106,7 @@ void pars(String input) {
   //is the line a "ray" or a line segment
   boolean tempRay = false;
   if (whosTalking(skeletonArray) >= 0) {
+    
     //clear all the lines
     if (input.contains("clear all")) {
       lineoids = new ArrayList<Lineoid>();
@@ -103,23 +117,30 @@ void pars(String input) {
       || input.contains("ray") 
       || input.contains("raise"))) {
       if (countJoinsInText(input) == 2 ) {
+        //split the string in the middle
         String[] list = split(input, "to");
+        //check that there are two joints in the string
         if (joinInText(list[0]) != -1 && joinInText(list[1]) != -1) {
           println("got 2 valid joints");
+          //what body is the first joint on?
           if (list[0].contains("my")) {
             tempStartBody = 0;
+            println("part 1 : " + 0);
           }
           if (list[0].contains("your")) {
             tempStartBody = 1;
-            println("part 1");
+            println("part 1 : " + 1);
           }
+          //what body is the second joint on?
           if (list[1].contains("my")) {
             tempEndBody = 0;
+            println("part 2 : " + 0);
           }
           if (list[1].contains("your")) {
             tempEndBody = 1;
-            println("part 2");
+            println("part 2 : " + 1);
           }
+          //set the booleans about the line
           if (input.contains("draw")) {
             tempLive = true;
           }
@@ -132,7 +153,10 @@ void pars(String input) {
           if (input.contains("ray") || input.contains("raise")) {
             tempRay = true;
           }
+          
+          //make the lineoid
           lineoids.add(new Lineoid(joinInText(list[0]), joinInText(list[1]), tempStartBody, tempEndBody, tempRay, tempLive));
+          //not sure I need this line?
           lineoids.get(lineoids.size()-1).updateLineoid(skeletonArray);
         }
       }
@@ -140,6 +164,7 @@ void pars(String input) {
   }
 }
 //------------
+//retunrs the integer "name" of the joint in a string (only send this strings with one joint name)
 int joinInText(String input) {
   if (input.contains("face")) {
     return  KinectPV2.JointType_Head;
@@ -183,6 +208,7 @@ int joinInText(String input) {
   return -1;
 }
 //------------
+//count the number of joins talked about in a string
 int countJoinsInText(String input) {
   int temp = 0;
   if (input.contains("face")) {
@@ -226,10 +252,6 @@ int countJoinsInText(String input) {
   }
   return temp;
 }
-//------------
-void stop() {
-  socket.stop();
-}
 //---------
 //figure out what body said the phrase
 int whosTalking(ArrayList<KSkeleton> skeletonArray) {
@@ -258,9 +280,10 @@ int whosTalking(ArrayList<KSkeleton> skeletonArray) {
   return -1;
 }
 //-------------
+//got a websocket message from the voice recognition program
 void websocketOnMessage(WebSocketConnection con, String msg) {
   voiceInput = msg;
-  println(msg);
+  println(voiceInput);
   pars(voiceInput);
 }
 //-------------
@@ -270,4 +293,9 @@ void websocketOnOpen(WebSocketConnection con) {
 //---------------
 void websocketOnClosed(WebSocketConnection con) {
   println("A client left");
+}
+//------------
+//stop the webSocket
+void stop() {
+  socket.stop();
 }

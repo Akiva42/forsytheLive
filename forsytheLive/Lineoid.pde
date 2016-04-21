@@ -9,6 +9,7 @@ class Lineoid {
   public int endJoint;
   float screenDiag = sqrt(width*width + height*height);
   //---------------
+  //set up a lineoid
   Lineoid(int startJointIn, int endJointIn, int startBodyIn, int endBodyIn, boolean rayIn, boolean liveIn) {
     startJoint = startJointIn;
     endJoint = endJointIn;
@@ -41,14 +42,19 @@ class Lineoid {
     }
   }
   //---------------------
+  //draw the acutal lineoid
   void drawLineoid() {
+    //set up style
     stroke(255);
     strokeWeight(20);
+    
     if (!ray) {
+      //draw line segment
       line(start.x, start.y, start.z, end.x, end.y, end.z);
       point(start.x, start.y, start.z);
       point(end.x, end.y, end.z);
     } else {
+      //draw "ray"
       float tempX = (start.x-end.x)*100;
       float tempY = (start.y-end.y)*100;
       float tempZ = (start.z-end.z)*100;
