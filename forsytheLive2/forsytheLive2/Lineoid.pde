@@ -50,14 +50,15 @@ class Lineoid {
     
     if (!ray) {
       //draw line segment
-      line(start.x, start.y, end.x, end.y);
-      point(start.x, start.y);
-      point(end.x, end.y);
+      line(start.x, start.y, start.z, end.x, end.y, end.z);
+      point(start.x, start.y, start.z);
+      point(end.x, end.y, end.z);
     } else {
       //draw "ray"
       float tempX = (start.x-end.x)*100;
       float tempY = (start.y-end.y)*100;
-      line(start.x-tempX, start.y-tempY, end.x+tempX, end.y+tempY);
+      float tempZ = (start.z-end.z)*100;
+      line(start.x-tempX, start.y-tempY, start.z-tempZ, end.x+tempX, end.y+tempY, end.z+tempZ);
     }
   }
 }

@@ -1,13 +1,15 @@
+import at.mukprojects.console.*;
+
 //  (draw || place)(line || ray)(my || your)(joint name)(to)(my || your)(joint name)
 /**head
-right/left hand
-right/left shoulder
-right/left elbow
-neck
-hips
-right/left knee
-right/left foot
-**/
+ right/left hand
+ right/left shoulder
+ right/left elbow
+ neck
+ hips
+ right/left knee
+ right/left foot
+ **/
 
 import KinectPV2.*;
 import KinectPV2.KJoint;
@@ -20,19 +22,21 @@ import netP5.*;
 KinectPV2 kinect;
 ArrayList<KSkeleton> skeletonArray;
 //all the lines
-ArrayList<Lineoid> lineoids = new ArrayList<Lineoid>();
+public ArrayList<Lineoid> lineoids = new ArrayList<Lineoid>();
 //voice stuff
 WebSocketP5 socket;
 String voiceInput = "";
 //osc stuff
 OscP5 oscP5;
 NetAddress myRemoteLocation;
+//on screen console
+Console console;
 //---------------
 void setup() {
-  size(1920, 1080, P3D);
+  size(1920, 1080);
   //set up kinect components
   kinect = new KinectPV2(this);
-  kinect.enableSkeleton3DMap(true);
+  kinect.enableSkeletonColorMap(true);
   kinect.enableColorImg(true);
   kinect.init();
   //set up voice stuff
@@ -40,14 +44,17 @@ void setup() {
   //set up osc stuff
   oscP5 = new OscP5(this, 12000);
   myRemoteLocation = new NetAddress("127.0.0.1", 13000);
+  //on screen console
+  console = new Console(this);
+  console.start();
 }
 //--------------
 void draw() {
   //draw the color image
   image(kinect.getColorImage(), 0, 0, width, height);
   //create an array of all the skeletons (updated each frame)
-  skeletonArray = kinect.getSkeleton3d();
-  
+  skeletonArray = kinect.getSkeletonColorMap();
+
   //update all the lineoids
   for (int i = 0; i < lineoids.size(); i++) {
     if (lineoids.get(i).live) {
@@ -56,19 +63,28 @@ void draw() {
     lineoids.get(i).drawLineoid();
   }
 
+  pushStyle();
   //draw the debug info at the top of the screen
   noStroke();
   fill(0);
   rect(0, 0, width, 60);
-  textSize(20);
+  textSize(50);
   stroke(255);
   fill(255);
   textAlign(CENTER, TOP);
-  text(voiceInput, width/2, 15);
-  text(skeletonArray.size(), width/2, 30);
+  text(voiceInput, width/2, 3);
+  textAlign(LEFT, TOP);
+  text(whosTalking(skeletonArray), 30, 3);
+  textAlign(RIGHT, TOP);
+  text(skeletonArray.size(), width-30, 3);
+  popStyle();
+
+  //draw on screen consol
+  //console.draw(0, 0, width/4, 55);
+  //console.print();
 
   //send the osc data out
-  sendOSCJoints();
+  //sendOSCJoints();
 }
 //--------------
 //send out osc data for each joint in each skeleton
@@ -90,7 +106,7 @@ void sendOSCJoints() {
       //tempJointsCount ++;
     }
   }
-  
+
   //add the list of joints to the message
   myMessage.add(tempJoints);
   //send the message over osc
@@ -106,7 +122,7 @@ void pars(String input) {
   //is the line a "ray" or a line segment
   boolean tempRay = false;
   if (whosTalking(skeletonArray) >= 0) {
-    
+
     //clear all the lines
     if (input.contains("clear all")) {
       lineoids = new ArrayList<Lineoid>();
@@ -153,8 +169,9 @@ void pars(String input) {
           if (input.contains("ray") || input.contains("raise")) {
             tempRay = true;
           }
-          
+
           //make the lineoid
+          voiceInput = voiceInput + " !";
           lineoids.add(new Lineoid(joinInText(list[0]), joinInText(list[1]), tempStartBody, tempEndBody, tempRay, tempLive));
           //not sure I need this line?
           lineoids.get(lineoids.size()-1).updateLineoid(skeletonArray);
