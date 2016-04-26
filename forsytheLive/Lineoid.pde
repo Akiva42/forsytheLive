@@ -32,7 +32,9 @@ class Lineoid {
         start = new PVector(joints[startJoint].getX(), joints[startJoint].getY(), joints[startJoint].getZ());
       }
       //switch to end skeleton
+      if(skeletonArray.size()-1>=endBody){
       skeleton = (KSkeleton) skeletonArray.get(endBody);
+      }
       if (skeleton.isTracked()) {
         //get endBody's joins set
         KJoint[] joints = skeleton.getJoints();

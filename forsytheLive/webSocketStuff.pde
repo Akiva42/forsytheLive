@@ -2,12 +2,12 @@
 void websocketOnMessage(WebSocketConnection con, String msg) {
   println("raw : " + msg);
   //println("fullVT : " + fullVoiceText);
-  String[] list = split(msg, fullVoiceText);
+  //String[] list = split(msg, fullVoiceText);
   //if(list[1].length() > 0){
-  fullVoiceText = msg;
-  voiceInput = list[1];
+  //fullVoiceText = msg;
+  //voiceInput = list[1];
   //println(voiceInput);
-  pars(voiceInput);
+  //pars(voiceInput);
   //}
 }
 //---------------
