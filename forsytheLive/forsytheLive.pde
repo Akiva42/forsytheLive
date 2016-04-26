@@ -41,7 +41,7 @@ void setup() {
   socket = new WebSocketP5(this, 8080);
   //on screen console
   console = new Console(this);
-  console.start();
+  //console.start();
 }
 //--------------
 void draw() {
