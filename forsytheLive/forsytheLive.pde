@@ -25,13 +25,15 @@ public ArrayList<Lineoid> lineoids = new ArrayList<Lineoid>();
 //voice stuff
 WebSocketP5 socket;
 String voiceInput = "";
+String fullVoiceText = "";
 //on screen console
 Console console;
 boolean debug = true;
 //---------------
 void setup() {
-  fullScreen();
+  //fullScreen();
   //size(1920, 1080);
+  size(600,600);
   //set up kinect components
   kinect = new KinectPV2(this);
   kinect.enableSkeletonColorMap(true);
